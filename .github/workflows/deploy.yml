@@ -3,8 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -50,16 +48,27 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Add .nojekyll to dist
+      - name: Prepare deployment directory
         run: |
-          cp public/.nojekyll dist/ || touch dist/.nojekyll
-          echo "Final dist contents:"
-          ls -la dist/
+          # Create a clean deployment directory
+          mkdir -p deploy
+          # Copy only the built files
+          cp -r dist/* deploy/
+          # Ensure .nojekyll exists
+          touch deploy/.nojekyll
+          echo "=== Deployment directory contents ==="
+          ls -la deploy/
+          echo "=== Checking for source files (should be empty) ==="
+          find deploy -name "*.ts" -o -name "*.vue" -o -name "src" | head -10 || echo "No source files found (good!)"
+          echo "=== index.html content ==="
+          cat deploy/index.html | head -20
+          echo "=== Assets directory ==="
+          ls -la deploy/assets/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./deploy
 
       - name: Deploy to GitHub Pages
         id: deployment
