@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+# Ensure only one deployment runs at a time
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -31,44 +36,17 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: |
-          npm run build
+        run: npm run build
         env:
           NODE_ENV: production
-
-      - name: List dist contents (debug)
-        run: |
-          echo "Contents of dist directory:"
-          ls -la dist/
-          echo "Contents of dist/assets:"
-          ls -la dist/assets/ || echo "No assets directory"
-          echo "dist/index.html content:"
-          cat dist/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Prepare deployment directory
-        run: |
-          # Create a clean deployment directory
-          mkdir -p deploy
-          # Copy only the built files
-          cp -r dist/* deploy/
-          # Ensure .nojekyll exists
-          touch deploy/.nojekyll
-          echo "=== Deployment directory contents ==="
-          ls -la deploy/
-          echo "=== Checking for source files (should be empty) ==="
-          find deploy -name "*.ts" -o -name "*.vue" -o -name "src" | head -10 || echo "No source files found (good!)"
-          echo "=== index.html content ==="
-          cat deploy/index.html | head -20
-          echo "=== Assets directory ==="
-          ls -la deploy/assets/
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./deploy
+          path: ./dist
 
       - name: Deploy to GitHub Pages
         id: deployment
