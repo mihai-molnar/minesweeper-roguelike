@@ -50,6 +50,12 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Add .nojekyll to dist
+        run: |
+          cp public/.nojekyll dist/ || touch dist/.nojekyll
+          echo "Final dist contents:"
+          ls -la dist/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
